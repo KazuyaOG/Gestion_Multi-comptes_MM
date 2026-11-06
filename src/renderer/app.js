@@ -15,6 +15,8 @@
   const API = window.gestionAPI || null;
   const MODE_BUREAU = Boolean(API && API.mode === 'bureau');
   const CLE_STOCKAGE = 'gestion-multi-comptes:donnees';
+  const CLE_THEME = 'gestion-multi-comptes:theme';
+  const THEMES_VALIDES = ['clair', 'sombre', 'systeme'];
   const DELAI_MAX_CHARGEMENT = 25000;
 
   /* ---------------------------------------------------------------- */
@@ -44,6 +46,11 @@
   let elementVoile = null;
   let typeAjout = 'favori';
 
+  // Thème : « systeme » suit Windows (ou le navigateur en aperçu).
+  let themeChoix = 'systeme';
+  let themeSysteme = 'clair';
+  let themeEffectif = 'clair';
+
   const vues = new Map(); // id -> { webview, element, bloquee, repliFait, minuteur, prete }
 
   /* ---------------------------------------------------------------- */
@@ -57,7 +64,9 @@
     etoile: `<svg viewBox="0 0 24 24" ${traits}><path d="M12 4.5l2.35 4.76 5.25.77-3.8 3.7.9 5.23L12 16.5l-4.7 2.46.9-5.23-3.8-3.7 5.25-.77z"/></svg>`,
     alerte: `<svg viewBox="0 0 24 24" ${traits}><path d="M12 4.8L2.9 20h18.2z"/><path d="M12 10v4.2M12 17.2h.01"/></svg>`,
     externe: `<svg viewBox="0 0 24 24" ${traits}><path d="M14 4.5h5.5V10"/><path d="M19.5 4.5L11 13"/><path d="M18 14.5v3.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3.5"/></svg>`,
-    globe: `<svg viewBox="0 0 24 24" ${traits}><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17"/><path d="M12 3.5c2.2 2.4 3.3 5.3 3.3 8.5s-1.1 6.1-3.3 8.5c-2.2-2.4-3.3-5.3-3.3-8.5S9.8 5.9 12 3.5z"/></svg>`
+    globe: `<svg viewBox="0 0 24 24" ${traits}><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17"/><path d="M12 3.5c2.2 2.4 3.3 5.3 3.3 8.5s-1.1 6.1-3.3 8.5c-2.2-2.4-3.3-5.3-3.3-8.5S9.8 5.9 12 3.5z"/></svg>`,
+    lune: `<svg viewBox="0 0 24 24" ${traits}><path d="M20 14.2A8.4 8.4 0 0 1 9.8 4a8.5 8.5 0 1 0 10.2 10.2z"/></svg>`,
+    soleil: `<svg viewBox="0 0 24 24" ${traits}><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M4.4 4.4l1.6 1.6M18 18l1.6 1.6M2.6 12h2.2M19.2 12h2.2M4.4 19.6L6 18M18 6l1.6-1.6"/></svg>`
   };
 
   const PALETTE = ['#3355dd', '#0e9f6e', '#7c3aed', '#d97706', '#0891b2', '#be185d', '#4f46e5', '#059669'];
@@ -70,7 +79,8 @@
     const r = parseInt(valeur.slice(0, 2), 16);
     const v = parseInt(valeur.slice(2, 4), 16);
     const b = parseInt(valeur.slice(4, 6), 16);
-    return `rgba(${r}, ${v}, ${b}, ${alpha === undefined ? 0.1 : alpha})`;
+    const opacite = alpha === undefined ? (themeEffectif === 'sombre' ? 0.22 : 0.1) : alpha;
+    return `rgba(${r}, ${v}, ${b}, ${opacite})`;
   }
 
   function hoteDe(url) {
@@ -188,6 +198,107 @@
 
   function categorieDe(contexte) {
     return CATEGORIES.find((c) => c.id === contexte) || null;
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Thème clair / sombre                                              */
+  /* ---------------------------------------------------------------- */
+  function appliquerTheme(redessiner) {
+    themeEffectif = themeChoix === 'systeme' ? themeSysteme : themeChoix;
+    document.documentElement.dataset.theme = themeEffectif;
+
+    const versSombre = themeEffectif === 'clair';
+    const libelle = versSombre ? 'Thème sombre' : 'Thème clair';
+    const aide = 'Passer au ' + libelle.toLowerCase();
+
+    for (const bouton of document.querySelectorAll('[data-bascule-theme]')) {
+      bouton.querySelector('.bouton-theme-icone').innerHTML = versSombre ? ICONES.lune : ICONES.soleil;
+      bouton.querySelector('.bouton-theme-texte').textContent = libelle;
+      bouton.title = aide;
+      bouton.setAttribute('aria-label', aide);
+      bouton.setAttribute('aria-pressed', String(themeEffectif === 'sombre'));
+    }
+
+    for (const bouton of document.querySelectorAll('[data-choix-theme]')) {
+      const actif = bouton.dataset.choixTheme === themeChoix;
+      bouton.classList.toggle('actif', actif);
+      bouton.setAttribute('aria-pressed', String(actif));
+    }
+
+    if (redessiner) {
+      rendreAccueil();
+      if (pageActive === 'laterale' && contexteActuel) rendreLaterale();
+      if (pageActive === 'favoris') rendreFavoris();
+    }
+  }
+
+  async function definirTheme(choix, silencieux) {
+    if (!THEMES_VALIDES.includes(choix)) return;
+    themeChoix = choix;
+    donnees.preferences.theme = choix;
+
+    // Cache local : permet d'afficher le bon thème dès la première image.
+    try {
+      localStorage.setItem(CLE_THEME, choix);
+    } catch {
+      /* stockage indisponible : le thème sera appliqué juste après le démarrage */
+    }
+    await enregistrerDonnees();
+
+    if (MODE_BUREAU) {
+      try {
+        themeSysteme = (await API.definirTheme(choix)) || themeSysteme;
+      } catch {
+        /* le thème de l'interface reste correct même sans retour */
+      }
+    }
+
+    appliquerTheme(true);
+    if (!silencieux) {
+      notification(
+        choix === 'systeme'
+          ? 'Thème de ' + (MODE_BUREAU ? 'Windows' : 'votre système')
+          : choix === 'sombre'
+            ? 'Thème sombre activé'
+            : 'Thème clair activé'
+      );
+    }
+  }
+
+  function basculerTheme() {
+    definirTheme(themeEffectif === 'sombre' ? 'clair' : 'sombre');
+  }
+
+  function surveillerThemeSysteme(valeur) {
+    themeSysteme = valeur === 'sombre' ? 'sombre' : 'clair';
+    if (themeChoix === 'systeme') appliquerTheme(true);
+  }
+
+  async function initialiserTheme() {
+    const enregistre = donnees.preferences.theme;
+    themeChoix = THEMES_VALIDES.includes(enregistre) ? enregistre : 'systeme';
+
+    if (MODE_BUREAU) {
+      try {
+        const etat = await API.lireTheme();
+        if (!THEMES_VALIDES.includes(enregistre) && THEMES_VALIDES.includes(etat.choix)) themeChoix = etat.choix;
+        themeSysteme = etat.systeme === 'sombre' ? 'sombre' : 'clair';
+        API.surThemeSysteme(surveillerThemeSysteme);
+      } catch {
+        /* à défaut, thème clair */
+      }
+    } else if (window.matchMedia) {
+      const media = window.matchMedia('(prefers-color-scheme: dark)');
+      themeSysteme = media.matches ? 'sombre' : 'clair';
+      media.addEventListener('change', (evenement) => surveillerThemeSysteme(evenement.matches ? 'sombre' : 'clair'));
+    }
+
+    try {
+      localStorage.setItem(CLE_THEME, themeChoix);
+    } catch {
+      /* rien à faire */
+    }
+    appliquerTheme(false);
   }
 
   /* ---------------------------------------------------------------- */
@@ -886,6 +997,16 @@
   function brancherInterface() {
     $('bouton-favoris').addEventListener('click', allerFavoris);
     $('bouton-infos').addEventListener('click', ouvrirInfos);
+    $('bouton-infos-laterale').addEventListener('click', ouvrirInfos);
+
+    for (const bouton of document.querySelectorAll('[data-bascule-theme]')) {
+      bouton.addEventListener('click', basculerTheme);
+    }
+    for (const bouton of document.querySelectorAll('[data-choix-theme]')) {
+      bouton.addEventListener('click', () => definirTheme(bouton.dataset.choixTheme));
+    }
+    $('choix-theme-systeme').textContent = MODE_BUREAU ? 'Windows' : 'Système';
+
     $('bouton-ajouter-favori').addEventListener('click', () => ouvrirAjout('favori'));
     $('bouton-ajouter-laterale').addEventListener('click', () =>
       ouvrirAjout(contexteActuel === 'favoris' ? 'favori' : 'compte')
@@ -979,6 +1100,7 @@
   /* ---------------------------------------------------------------- */
   async function demarrer() {
     await chargerDonnees();
+    await initialiserTheme();
     brancherInterface();
     $('mode-etiquette').textContent = MODE_BUREAU ? '' : 'Aperçu navigateur';
     rendreAccueil();

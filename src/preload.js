@@ -11,5 +11,8 @@ contextBridge.exposeInMainWorld('gestionAPI', {
   ouvrirDansNavigateur: (url) => ipcRenderer.invoke('systeme:ouvrir', url),
   lireDonnees: () => ipcRenderer.invoke('donnees:lire'),
   ecrireDonnees: (donnees) => ipcRenderer.invoke('donnees:ecrire', donnees),
-  effacerSessions: () => ipcRenderer.invoke('sessions:effacer')
+  effacerSessions: () => ipcRenderer.invoke('sessions:effacer'),
+  lireTheme: () => ipcRenderer.invoke('theme:lire'),
+  definirTheme: (choix) => ipcRenderer.invoke('theme:definir', choix),
+  surThemeSysteme: (rappel) => ipcRenderer.on('theme:systeme', (_evenement, valeur) => rappel(valeur))
 });

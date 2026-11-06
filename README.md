@@ -68,7 +68,33 @@ Pour rendre l'affichage intégré possible, l'application retire uniquement deux
 
 ---
 
-## 4. Sécurité et vie privée
+## 4. Thème clair / sombre
+
+Un interrupteur **clair / sombre** est présent sur les trois pages :
+
+- en bas de la **page d'accueil**, à côté de « À propos » ;
+- en bas de la **barre latérale** des catégories ;
+- en haut à droite de la page **Sites favoris**.
+
+Un clic suffit pour passer d'un thème à l'autre, et le choix est **mémorisé** d'un lancement à l'autre.
+
+### Suivre le thème de Windows
+
+Par défaut, l'application suit Windows. Pour forcer un thème ou revenir au suivi automatique, ouvrez **À propos → Apparence** :
+
+| Choix | Comportement |
+| --- | --- |
+| **Clair** | Toujours clair, peu importe Windows |
+| **Sombre** | Toujours sombre, peu importe Windows |
+| **Windows** | Suit Windows et change en direct quand le système bascule |
+
+Le thème s'applique aussi aux boîtes de dialogue de Windows (demandes d'autorisation, confirmations) et à la couleur de fond de la fenêtre : aucun éclair blanc au démarrage en thème sombre.
+
+> Les sites affichés dans l'application (Gmail, BNC, RDS…) gardent **leur propre apparence** — l'application ne modifie pas leur contenu. La plupart ont leur propre réglage sombre.
+
+---
+
+## 5. Sécurité et vie privée
 
 - **Aucun mot de passe n'est enregistré par l'application.** Vous vous connectez directement sur le site du service, comme dans un navigateur.
 - Les cookies de connexion restent **sur votre PC**, dans un dossier par compte.
@@ -83,12 +109,12 @@ Pour rendre l'affichage intégré possible, l'application retire uniquement deux
 %APPDATA%\Gestion Multi-comptes\
 ```
 
-- `donnees.json` → vos favoris, vos comptes ajoutés, vos préférences et la taille de la fenêtre.
+- `donnees.json` → vos favoris, vos comptes ajoutés, votre thème, vos préférences et la taille de la fenêtre.
 - Un dossier `Partitions` → les sessions de connexion, une par compte.
 
 ---
 
-## 5. Raccourcis clavier
+## 6. Raccourcis clavier
 
 | Raccourci | Action |
 | --- | --- |
@@ -96,11 +122,13 @@ Pour rendre l'affichage intégré possible, l'application retire uniquement deux
 | `Ctrl` + `R` | Recharger le site affiché |
 | `Échap` | Revenir à l'accueil (ou fermer une fenêtre de dialogue) |
 
+Le thème se change d'un clic sur le bouton lune/soleil, disponible sur toutes les pages.
+
 *(Ces raccourcis agissent lorsque le curseur est dans l'interface de l'application, pas à l'intérieur d'un site.)*
 
 ---
 
-## 6. Modifier les comptes d'usine
+## 7. Modifier les comptes d'usine
 
 Tout se trouve dans un seul fichier, facile à lire : **`src/renderer/comptes.js`**.
 
@@ -120,7 +148,7 @@ Changez l'adresse, le nom ou la couleur, puis relancez l'application. Les compte
 
 ---
 
-## 7. Voir l'interface sans installer Electron
+## 8. Voir l'interface sans installer Electron
 
 ```bat
 npm run apercu
@@ -130,7 +158,7 @@ Puis ouvrez <http://localhost:4173>. L'apparence et la navigation sont identique
 
 ---
 
-## 8. Structure du projet
+## 9. Structure du projet
 
 ```
 Gestion_Multi-comptes_MM/
@@ -145,7 +173,8 @@ Gestion_Multi-comptes_MM/
 │   ├── preload.js                → passerelle limitée entre l'interface et Windows
 │   └── renderer/
 │       ├── index.html            → accueil, pages latérales, favoris, dialogues
-│       ├── styles.css            → apparence minimaliste
+│       ├── styles.css            → apparence minimaliste, palettes claire et sombre
+│       ├── theme-init.js         → applique le thème dès la première image
 │       ├── comptes.js            → comptes et catégories par défaut
 │       └── app.js                → navigation, affichage intégré, repli navigateur
 ├── tools/apercu.mjs              → aperçu de l'interface dans un navigateur

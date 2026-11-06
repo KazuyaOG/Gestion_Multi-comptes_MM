@@ -7,6 +7,7 @@
       content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-src https:; object-src 'none'; base-uri 'none'; form-action 'self'"
     />
     <title>Gestion Multi-comptes</title>
+    <script src="theme-init.js"></script>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -42,6 +43,10 @@
           </button>
           <div class="accueil-meta">
             <span id="mode-etiquette" class="etiquette"></span>
+            <button id="bouton-theme-accueil" class="bouton-theme" data-bascule-theme type="button" title="Changer de thème">
+              <span class="bouton-theme-icone" aria-hidden="true"></span>
+              <span class="bouton-theme-texte"></span>
+            </button>
             <button id="bouton-infos" class="lien-discret" type="button">À propos</button>
           </div>
         </footer>
@@ -70,6 +75,13 @@
             <span aria-hidden="true">+</span> <span id="texte-ajouter-laterale">Ajouter un compte</span>
           </button>
           <button id="bouton-gerer-favoris" class="lien-discret" type="button" hidden>Gérer les favoris</button>
+          <div class="laterale-bas">
+            <button id="bouton-theme-laterale" class="bouton-theme" data-bascule-theme type="button" title="Changer de thème">
+              <span class="bouton-theme-icone" aria-hidden="true"></span>
+              <span class="bouton-theme-texte"></span>
+            </button>
+            <button id="bouton-infos-laterale" class="lien-discret" type="button">À propos</button>
+          </div>
         </div>
       </aside>
 
@@ -129,9 +141,15 @@
     <!-- ============================ FAVORIS ============================ -->
     <section id="page-favoris" class="page page-favoris" hidden>
       <div class="favoris-contenu">
-        <button class="bouton-retour" data-retour="accueil" type="button">
-          <span aria-hidden="true">←</span> Accueil
-        </button>
+        <div class="favoris-barre-haut">
+          <button class="bouton-retour" data-retour="accueil" type="button">
+            <span aria-hidden="true">←</span> Accueil
+          </button>
+          <button id="bouton-theme-favoris" class="bouton-theme bouton-theme--icone" data-bascule-theme type="button" title="Changer de thème">
+              <span class="bouton-theme-icone" aria-hidden="true"></span>
+              <span class="bouton-theme-texte"></span>
+            </button>
+        </div>
 
         <header class="favoris-entete">
           <div>
@@ -176,10 +194,19 @@
           Gestion Multi-comptes <span id="infos-version"></span> — chaque compte s’ouvre dans sa propre session,
           ce qui permet d’utiliser plusieurs comptes d’un même service en même temps.
         </p>
+        <div class="champ-apparence">
+          <span>Apparence</span>
+          <div class="segments" role="group" aria-label="Apparence de l’application">
+            <button type="button" data-choix-theme="clair">Clair</button>
+            <button type="button" data-choix-theme="sombre">Sombre</button>
+            <button type="button" data-choix-theme="systeme" id="choix-theme-systeme">Windows</button>
+          </div>
+        </div>
         <ul class="liste-infos">
           <li>L’application n’enregistre <strong>aucun mot de passe</strong> : les connexions se font directement sur les sites.</li>
           <li>Pour pouvoir afficher un site dans la fenêtre, l’application retire uniquement ses protections anti-intégration. Un bouton permet toujours de l’ouvrir dans votre navigateur habituel.</li>
           <li>Si un site refuse l’affichage intégré, il s’ouvre automatiquement dans le navigateur par défaut.</li>
+          <li>Le thème s’applique à l’application ; les sites affichés gardent leur propre apparence.</li>
         </ul>
         <p id="infos-dossier" class="infos-dossier"></p>
         <div class="dialogue-actions">

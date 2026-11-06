@@ -14,13 +14,15 @@
  * session Chromium.
  */
 
-const { app, BrowserWindow, ipcMain, session, shell, Menu, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, session, shell, Menu, dialog, nativeTheme } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 
 const DOSSIER_SRC = __dirname;
 const FICHIER_DONNEES = () => path.join(app.getPath('userData'), 'donnees.json');
 const PREFIXE_SESSION = 'persist:compte-';
+const THEMES_VALIDES = ['clair', 'sombre', 'systeme'];
+const COULEUR_FOND = { clair: '#f5f6f8', sombre: '#0f1216' };
 
 let fenetrePrincipale = null;
 
@@ -73,6 +75,35 @@ function ecrireDonnees(donnees) {
   const temporaire = fichier + '.tmp';
   fs.writeFileSync(temporaire, JSON.stringify(donnees, null, 2), 'utf8');
   fs.renameSync(temporaire, fichier);
+}
+
+/* ------------------------------------------------------------------ */
+/* Thème clair / sombre                                                */
+/* ------------------------------------------------------------------ */
+
+// Choix courant, gardé en mémoire : l'événement « updated » de Windows ne
+// doit jamais dépendre d'une lecture disque qui pourrait arriver trop tard.
+let themeChoixActuel = null;
+
+/** Choix enregistré par l'utilisateur (« systeme » par défaut). */
+function themeEnregistre() {
+  const choix = (lireDonnees().preferences || {}).theme;
+  return THEMES_VALIDES.includes(choix) ? choix : 'systeme';
+}
+
+function themeSystemeActuel() {
+  return nativeTheme.shouldUseDarkColors ? 'sombre' : 'clair';
+}
+
+/** Aligné sur le thème choisi : les boîtes de dialogue Windows suivent. */
+function appliquerThemeNatif(choix) {
+  themeChoixActuel = choix;
+  nativeTheme.themeSource = choix === 'clair' ? 'light' : choix === 'sombre' ? 'dark' : 'system';
+  const effectif = choix === 'systeme' ? themeSystemeActuel() : choix;
+  if (fenetrePrincipale && !fenetrePrincipale.isDestroyed()) {
+    fenetrePrincipale.setBackgroundColor(COULEUR_FOND[effectif]);
+  }
+  return themeSystemeActuel();
 }
 
 /* ------------------------------------------------------------------ */
@@ -211,7 +242,7 @@ function creerFenetre() {
     minWidth: 900,
     minHeight: 600,
     title: 'Gestion Multi-comptes',
-    backgroundColor: '#f5f6f8',
+    backgroundColor: COULEUR_FOND[themeEnregistre() === 'systeme' ? themeSystemeActuel() : themeEnregistre()],
     autoHideMenuBar: true,
     show: false,
     icon: path.join(DOSSIER_SRC, '..', 'ressources', 'icone.ico'),
@@ -276,6 +307,16 @@ function creerFenetre() {
 /* ------------------------------------------------------------------ */
 /* Communication avec l'interface                                      */
 /* ------------------------------------------------------------------ */
+
+ipcMain.handle('theme:lire', () => ({
+  choix: themeEnregistre(),
+  systeme: themeSystemeActuel()
+}));
+
+ipcMain.handle('theme:definir', (_evenement, choix) => {
+  if (!THEMES_VALIDES.includes(choix)) throw new Error('Thème inconnu : ' + String(choix).slice(0, 20));
+  return appliquerThemeNatif(choix);
+});
 
 ipcMain.handle('app:infos', () => ({
   version: app.getVersion(),
@@ -346,7 +387,18 @@ app.on('web-contents-created', (_evenement, contents) => {
   });
 });
 
+// Si l'utilisateur suit Windows, l'application change de thème en direct
+// lorsque Windows bascule entre clair et sombre.
+nativeTheme.on('updated', () => {
+  if ((themeChoixActuel || themeEnregistre()) !== 'systeme') return;
+  if (fenetrePrincipale && !fenetrePrincipale.isDestroyed()) {
+    fenetrePrincipale.setBackgroundColor(COULEUR_FOND[themeSystemeActuel()]);
+    fenetrePrincipale.webContents.send('theme:systeme', themeSystemeActuel());
+  }
+});
+
 app.whenReady().then(() => {
+  appliquerThemeNatif(themeEnregistre());
   creerFenetre();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) creerFenetre();
