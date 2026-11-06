@@ -1,0 +1,14 @@
+# Dépendances et fichiers générés (ne pas versionner)
+node_modules/
+dist/
+out/
+*.log
+npm-debug.log*
+
+# Données personnelles de l'application (créées à l'exécution)
+donnees.json
+
+# Système
+.DS_Store
+Thumbs.db
+desktop.ini

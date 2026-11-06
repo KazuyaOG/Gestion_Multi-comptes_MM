@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-src https:; object-src 'none'; base-uri 'none'; form-action 'self'"
+    />
+    <title>Gestion Multi-comptes</title>
+    <script src="theme-init.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- ============================ ACCUEIL ============================ -->
+    <section id="page-accueil" class="page page-accueil">
+      <div class="accueil-contenu">
+        <header class="accueil-entete">
+          <div class="logo" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="7" width="14" height="12" rx="2.5" />
+              <path d="M7 4.5h11.5A2.5 2.5 0 0 1 21 7v9" />
+            </svg>
+          </div>
+          <h1>Gestion multi-comptes</h1>
+          <p class="sous-titre">Tous vos comptes, au même endroit.</p>
+        </header>
+
+        <div id="grille-categories" class="grille-categories"></div>
+
+        <footer class="accueil-pied">
+          <button id="bouton-favoris" class="bouton-favoris" type="button">
+            <span class="bouton-favoris-icone" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 4.5l2.35 4.76 5.25.77-3.8 3.7.9 5.23L12 16.5l-4.7 2.46.9-5.23-3.8-3.7 5.25-.77z" />
+              </svg>
+            </span>
+            <span class="bouton-favoris-texte">
+              <strong>Sites favoris</strong>
+              <small id="favoris-apercu">RDS</small>
+            </span>
+            <span id="favoris-compteur" class="pastille">1</span>
+            <span class="fleche" aria-hidden="true">→</span>
+          </button>
+          <div class="accueil-meta">
+            <span id="mode-etiquette" class="etiquette"></span>
+            <button id="bouton-theme-accueil" class="bouton-theme" data-bascule-theme type="button" title="Changer de thème">
+              <span class="bouton-theme-icone" aria-hidden="true"></span>
+              <span class="bouton-theme-texte"></span>
+            </button>
+            <button id="bouton-infos" class="lien-discret" type="button">À propos</button>
+          </div>
+        </footer>
+      </div>
+    </section>
+
+    <!-- ==================== PAGE AVEC BARRE LATÉRALE ==================== -->
+    <section id="page-laterale" class="page page-laterale" hidden>
+      <aside class="barre-laterale">
+        <button class="bouton-retour" data-retour="accueil" type="button">
+          <span aria-hidden="true">←</span> Accueil
+        </button>
+
+        <div class="laterale-entete">
+          <span id="laterale-puce" class="puce" aria-hidden="true"></span>
+          <div>
+            <h2 id="laterale-titre">Email</h2>
+            <p id="laterale-sous-titre" class="laterale-sous-titre"></p>
+          </div>
+        </div>
+
+        <nav id="liste-laterale" class="liste-laterale" aria-label="Comptes disponibles"></nav>
+
+        <div class="laterale-pied">
+          <button id="bouton-ajouter-laterale" class="bouton-ajouter" type="button">
+            <span aria-hidden="true">+</span> <span id="texte-ajouter-laterale">Ajouter un compte</span>
+          </button>
+          <button id="bouton-gerer-favoris" class="lien-discret" type="button" hidden>Gérer les favoris</button>
+          <div class="laterale-bas">
+            <button id="bouton-theme-laterale" class="bouton-theme" data-bascule-theme type="button" title="Changer de thème">
+              <span class="bouton-theme-icone" aria-hidden="true"></span>
+              <span class="bouton-theme-texte"></span>
+            </button>
+            <button id="bouton-infos-laterale" class="lien-discret" type="button">À propos</button>
+          </div>
+        </div>
+      </aside>
+
+      <main class="zone-contenu">
+        <div id="barre-outils" class="barre-outils" hidden>
+          <div class="groupe-outils">
+            <button id="outil-precedent" class="outil" type="button" title="Page précédente" aria-label="Page précédente">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7" /></svg>
+            </button>
+            <button id="outil-suivant" class="outil" type="button" title="Page suivante" aria-label="Page suivante">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7" /></svg>
+            </button>
+            <button id="outil-recharger" class="outil" type="button" title="Recharger" aria-label="Recharger">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3" /><path d="M19.8 4.6v4.2h-4.2" /></svg>
+            </button>
+          </div>
+          <div id="adresse-site" class="adresse-site" title=""></div>
+          <button id="outil-navigateur" class="bouton bouton-secondaire bouton-compact" type="button">
+            <span class="txt-bouton">Ouvrir dans le navigateur</span>
+            <span aria-hidden="true">↗</span>
+          </button>
+        </div>
+
+        <div id="barre-progression" class="barre-progression" hidden><span></span></div>
+
+        <div id="visionneuse" class="visionneuse">
+          <div id="etat-vide" class="etat-vide">
+            <div class="etat-vide-icone" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="19" height="15" rx="2.5" /><path d="M2.5 9h19M6 6.75h.01M8.5 6.75h.01" /></svg>
+            </div>
+            <h3>Choisissez un compte</h3>
+            <p>Sélectionnez un compte dans la barre latérale pour l’ouvrir ici.</p>
+          </div>
+
+          <!-- Les <webview> des comptes sont ajoutés ici par app.js -->
+
+          <div id="voile" class="voile" hidden>
+            <div class="voile-carte">
+              <div id="voile-icone" class="voile-icone" aria-hidden="true"></div>
+              <h3 id="voile-titre"></h3>
+              <p id="voile-texte"></p>
+              <p id="voile-adresse" class="voile-adresse"></p>
+              <div class="voile-actions">
+                <button id="voile-ouvrir" class="bouton bouton-principal" type="button">Ouvrir dans le navigateur</button>
+                <button id="voile-reessayer" class="bouton bouton-secondaire" type="button">Réessayer ici</button>
+              </div>
+              <label id="voile-option" class="case-a-cocher">
+                <input id="voile-toujours" type="checkbox" />
+                <span>Toujours ouvrir ce compte dans le navigateur</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </main>
+    </section>
+
+    <!-- ============================ FAVORIS ============================ -->
+    <section id="page-favoris" class="page page-favoris" hidden>
+      <div class="favoris-contenu">
+        <div class="favoris-barre-haut">
+          <button class="bouton-retour" data-retour="accueil" type="button">
+            <span aria-hidden="true">←</span> Accueil
+          </button>
+          <button id="bouton-theme-favoris" class="bouton-theme bouton-theme--icone" data-bascule-theme type="button" title="Changer de thème">
+              <span class="bouton-theme-icone" aria-hidden="true"></span>
+              <span class="bouton-theme-texte"></span>
+            </button>
+        </div>
+
+        <header class="favoris-entete">
+          <div>
+            <h1>Sites favoris</h1>
+            <p class="sous-titre">Vos raccourcis personnels, toujours à portée de clic.</p>
+          </div>
+          <button id="bouton-ajouter-favori" class="bouton bouton-principal" type="button">
+            <span aria-hidden="true">+</span> Ajouter un site
+          </button>
+        </header>
+
+        <div id="grille-favoris" class="grille-favoris"></div>
+        <p id="favoris-vide" class="liste-vide" hidden>Aucun favori pour le moment. Ajoutez votre premier site.</p>
+      </div>
+    </section>
+
+    <!-- ============================ DIALOGUES ============================ -->
+    <dialog id="dialogue-ajout" class="dialogue">
+      <form id="formulaire-ajout" method="dialog">
+        <h3 id="ajout-titre">Ajouter un site</h3>
+        <p id="ajout-aide" class="dialogue-aide"></p>
+        <label class="champ">
+          <span>Nom</span>
+          <input id="ajout-nom" type="text" maxlength="40" autocomplete="off" placeholder="Ex. : Météo Média" required />
+        </label>
+        <label class="champ">
+          <span>Adresse du site</span>
+          <input id="ajout-url" type="text" maxlength="500" autocomplete="off" placeholder="ex. : meteo.ca" required />
+        </label>
+        <p id="ajout-erreur" class="erreur" hidden></p>
+        <div class="dialogue-actions">
+          <button id="ajout-annuler" class="bouton bouton-secondaire" type="button">Annuler</button>
+          <button id="ajout-valider" class="bouton bouton-principal" type="submit">Ajouter</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="dialogue-infos" class="dialogue">
+      <div class="dialogue-corps">
+        <h3>À propos</h3>
+        <p class="dialogue-aide">
+          Gestion Multi-comptes <span id="infos-version"></span> — chaque compte s’ouvre dans sa propre session,
+          ce qui permet d’utiliser plusieurs comptes d’un même service en même temps.
+        </p>
+        <div class="champ-apparence">
+          <span>Apparence</span>
+          <div class="segments" role="group" aria-label="Apparence de l’application">
+            <button type="button" data-choix-theme="clair">Clair</button>
+            <button type="button" data-choix-theme="sombre">Sombre</button>
+            <button type="button" data-choix-theme="systeme" id="choix-theme-systeme">Windows</button>
+          </div>
+        </div>
+        <ul class="liste-infos">
+          <li>L’application n’enregistre <strong>aucun mot de passe</strong> : les connexions se font directement sur les sites.</li>
+          <li>Pour pouvoir afficher un site dans la fenêtre, l’application retire uniquement ses protections anti-intégration. Un bouton permet toujours de l’ouvrir dans votre navigateur habituel.</li>
+          <li>Si un site refuse l’affichage intégré, il s’ouvre automatiquement dans le navigateur par défaut.</li>
+          <li>Le thème s’applique à l’application ; les sites affichés gardent leur propre apparence.</li>
+        </ul>
+        <p id="infos-dossier" class="infos-dossier"></p>
+        <div class="dialogue-actions">
+          <button id="infos-effacer" class="bouton bouton-secondaire" type="button">Effacer les connexions</button>
+          <button id="infos-fermer" class="bouton bouton-principal" type="button">Fermer</button>
+        </div>
+      </div>
+    </dialog>
+
+    <div id="notifications" class="notifications" aria-live="polite"></div>
+
+    <script src="comptes.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
